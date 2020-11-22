@@ -262,7 +262,16 @@ func (be BindError) ValidationErrors() validator.ValidationErrors {
 // parameters specified in a field tag.
 type extractor func(*gin.Context, string) (string, []string, error)
 
-// extractQuery is an extractor tgat operated on the query
+// extractDefault is an extractor that extract the value of default tag
+func extractDefault(c *gin.Context, tag string) (string, []string, error) {
+	parts := strings.Split(tag, ",")
+	if len(parts) == 0 {
+		return "", nil, errors.New("empty default tag")
+	}
+	return "default", parts, nil
+}
+
+// extractQuery is an extractor that operated on the query
 // parameters of a request.
 func extractQuery(c *gin.Context, tag string) (string, []string, error) {
 	name, required, defaultVal, err := parseTagKey(tag)

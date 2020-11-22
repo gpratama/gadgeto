@@ -71,6 +71,11 @@ func Handler(h interface{}, status int, options ...func(*Route)) gin.HandlerFunc
 		// binding.
 		if in != nil {
 			input := reflect.New(in)
+			// Bind default
+			if err := bind(c, input, DefaultTag, extractDefault); err != nil {
+				handleError(c, err)
+				return
+			}
 			// Bind the body with the hook.
 			if err := bindHook(c, input.Interface()); err != nil {
 				handleError(c, BindError{message: err.Error(), typ: in})

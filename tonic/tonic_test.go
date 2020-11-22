@@ -126,6 +126,12 @@ func TestBody(t *testing.T) {
 	tester.AddCall("body5", "POST", "/body", `{"param": "foo", "param-optional-validated": "ttttt"}`).Checkers(iffy.ExpectStatus(400), expectStringInBody("failed on the 'eq=|eq=foo|gt=10' tag"))
 	tester.AddCall("body6", "POST", "/body", `{"param": "foo", "param-optional-validated": "foo"}`).Checkers(iffy.ExpectStatus(200), expectString("param-optional-validated", "foo"))
 	tester.AddCall("body7", "POST", "/body", `{"param": "foo", "param-optional-validated": "foobarfoobuz"}`).Checkers(iffy.ExpectStatus(200), expectString("param-optional-validated", "foobarfoobuz"))
+	tester.AddCall("body8", "POST", "/body", `{"param": "foo"}`).Checkers(iffy.ExpectStatus(200), expectString("param-default-string", "default_string"))
+	tester.AddCall("body8", "POST", "/body", `{"param": "foo", "param-default-string": "bar"}`).Checkers(iffy.ExpectStatus(200), expectString("param-default-string", "bar"))
+	tester.AddCall("body9", "POST", "/body", `{"param": "foo"}`).Checkers(iffy.ExpectStatus(200), expectStringArr("param-default-string-explode", "a", "b", "c"))
+	tester.AddCall("body9", "POST", "/body", `{"param": "foo", "param-default-string-explode": ["foo", "bar", "baz"]}`).Checkers(iffy.ExpectStatus(200), expectStringArr("param-default-string-explode", "foo", "bar", "baz"))
+	tester.AddCall("body10", "POST", "/body", `{"param": "foo"}`).Checkers(iffy.ExpectStatus(200), expectInt("param-default-int", 2))
+	tester.AddCall("body10", "POST", "/body", `{"param": "foo", "param-default-int": "bar"}`).Checkers(iffy.ExpectStatus(400))
 
 	tester.Run()
 }
@@ -190,9 +196,12 @@ func queryHandlerOld(c *gin.Context, in *queryInOld) (*queryInOld, error) {
 }
 
 type bodyIn struct {
-	Param                  string `json:"param" validate:"required"`
-	ParamOptional          string `json:"param-optional"`
-	ValidatedParamOptional string `json:"param-optional-validated" validate:"eq=|eq=foo|gt=10"`
+	Param                     string   `json:"param" validate:"required"`
+	ParamOptional             string   `json:"param-optional"`
+	ParamDefaultString        string   `json:"param-default-string" default:"default_string"`
+	ParamDefaultStringExplode []string `json:"param-default-string-explode" default:"a,b,c"`
+	ParamDefaultInt           int      `json:"param-default-int" default:"2"`
+	ValidatedParamOptional    string   `json:"param-optional-validated" validate:"eq=|eq=foo|gt=10"`
 }
 
 func bodyHandler(c *gin.Context, in *bodyIn) (*bodyIn, error) {
